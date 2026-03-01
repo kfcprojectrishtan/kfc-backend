@@ -38,9 +38,11 @@ def create(order: Dict) -> Dict:
     res = supabase.table('orders').insert(order).execute()
     return res.data[0]
 
-def update_status(order_id: str, status: str) -> bool:
+def update_status(order_id: str, status: str) -> Optional[dict]:
     res = supabase.table('orders').update({'status': status}).eq('id', order_id).execute()
-    return len(res.data) > 0
+    if len(res.data) > 0:
+        return res.data[0]
+    return None
 
 def update_tg_msg_id(order_id: str, msg_id: int) -> bool:
     res = supabase.table('orders').update({'tg_msg_id': msg_id}).eq('id', order_id).execute()
