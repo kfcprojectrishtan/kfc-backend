@@ -267,7 +267,10 @@ async def otp_send(body: OtpSendRequest):
     existing = db.get_otp(phone)
     if existing:
         sent_ago = time.time() - _parse_db_time(existing.get("created_at"))
-        if sent_ago < 60:
+        existing_mode = existing.get("mode", "").strip().lower()
+        
+        # Only enforce 60s cooldown if the user is spamming the exact same flow
+        if sent_ago < 60 and existing_mode == mode:
             raise HTTPException(
                 status_code=429,
                 detail={"error": "too_soon", "message": "1 daqiqa kuting va qayta urining"}
