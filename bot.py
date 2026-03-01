@@ -151,12 +151,19 @@ def build_order_message(order: dict, title: str = "Yangi zakaz") -> str:
     status = order.get("status", "pending")
     emoji, label = STATUS.get(status, ("🕐", status))
 
+    coins_used = int(order.get("coins_used", 0) or 0)
+    coins_text = ""
+    if coins_used > 0:
+        discount = coins_used * 1000
+        coins_text = f"🪙 <b>Koinlar (chegirma):</b> -{discount:,} UZS ({coins_used} koin)\n"
+
     text = (
         f"🛒 <b>{title} #{order_id}</b>\n"
         f"━━━━━━━━━━━━━━━\n"
         f"📍 <b>Manzil:</b> {address}\n\n"
         f"🍽 <b>Tarkib:</b>\n{items_text}\n\n"
-        f"💳 <b>Jami:</b> <b><u>{total:,} UZS</u></b>\n"
+        f"{coins_text}"
+        f"💳 <b>Jami (to'lanishi kerak):</b> <b><u>{total:,} UZS</u></b>\n"
         f"💰 <b>To'lov:</b> {payment}\n"
         f"👤 <b>Mijoz:</b> {customer}\n"
         f"📞 <b>Telefon:</b> {phone}\n"
