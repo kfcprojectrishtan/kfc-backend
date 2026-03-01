@@ -293,19 +293,23 @@ async def otp_send(body: OtpSendRequest):
 def otp_verify(body: OtpVerifyRequest):
     phone = _norm_phone(body.phone)
     if not phone:
+        print(f"OTP_VERIFY_ERROR: phone required. Payload: {body}")
         raise HTTPException(400, "phone required")
 
     record = db.get_otp(phone)
     if not record:
+        print(f"OTP_VERIFY_ERROR: not_found. phone: {phone}")
         raise HTTPException(400, detail={"error": "not_found", "message": "Kod topilmadi. Qayta yuboring."})
 
     # expired
     if time.time() > _parse_db_time(record.get("expires_at")):
+        print(f"OTP_VERIFY_ERROR: expired. expires_at: {record.get('expires_at')}, current: {time.time()}")
         db.delete_otp(phone)
         raise HTTPException(400, detail={"error": "expired", "message": "Kod muddati o'tdi. Qayta yuboring."})
 
     # attempts
     if int(record.get("attempts", 0) or 0) >= 5:
+        print(f"OTP_VERIFY_ERROR: too_many_attempts. attempts: {record.get('attempts')}")
         db.delete_otp(phone)
         raise HTTPException(400, detail={"error": "too_many_attempts", "message": "Ko'p noto'g'ri urinish. Qayta yuboring."})
 
@@ -313,10 +317,12 @@ def otp_verify(body: OtpVerifyRequest):
     body_mode = (body.mode or "login").strip().lower()
     rec_mode = (record.get("mode") or "login").strip().lower()
     if body_mode != rec_mode:
+        print(f"OTP_VERIFY_ERROR: mode_mismatch. body_mode: {body_mode}, rec_mode: {rec_mode}")
         raise HTTPException(400, detail={"error": "mode_mismatch", "message": "Kod boshqa rejim uchun yuborilgan. Qayta yuboring."})
 
     # code check
     if str(record.get("code", "")).strip() != str(body.code).strip():
+        print(f"OTP_VERIFY_ERROR: wrong_code. payload_code: {body.code}, db_code: {record.get('code')}")
         attempts = db.increment_otp_attempts(phone)
         left = 5 - attempts
         raise HTTPException(400, detail={"error": "wrong_code", "message": f"Noto'g'ri kod. {left} ta urinish qoldi."})
@@ -329,6 +335,7 @@ def otp_verify(body: OtpVerifyRequest):
 
     if rec_mode == "signup":
         if reg_user:
+            print(f"OTP_VERIFY_ERROR: user_already_exists during signup. phone: {phone}")
             raise HTTPException(400, detail={"error": "user_already_exists", "message": "Bu raqam allaqachon ro'yxatdan o'tgan."})
         # telegram full_name bo'lsa, shu bilan prefill
         first, last = "", ""
