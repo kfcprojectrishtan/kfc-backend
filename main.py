@@ -354,8 +354,8 @@ def otp_verify(body: OtpVerifyRequest):
         raise HTTPException(404, detail={"error": "user_not_found", "message": "Foydalanuvchi topilmadi."})
 
     user_data = {
-        "firstName": reg_user.get("firstName", ""),
-        "lastName": reg_user.get("lastName", ""),
+        "firstName": reg_user.get("first_name", ""),
+        "lastName": reg_user.get("last_name", ""),
         "phone": phone,
     }
     return {"success": True, "phone": phone, "user": user_data, "mode": "login"}
@@ -385,7 +385,12 @@ def get_profile(phone: str):
     user = get_registered_user(p)
     if not user:
         raise HTTPException(404, detail="Foydalanuvchi topilmadi")
-    return user
+    return {
+        "phone": user.get("phone"),
+        "firstName": user.get("first_name", ""),
+        "lastName": user.get("last_name", ""),
+        "created_at": user.get("created_at")
+    }
 
 
 @app.post("/api/orders", status_code=201)
