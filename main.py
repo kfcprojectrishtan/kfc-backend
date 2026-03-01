@@ -203,6 +203,18 @@ async def notify_after_delay(order_id: str, delay: int = 65):
 # Endpointlar
 # ───────────────────────────────────────────────────────────────
 
+def _parse_db_time(t_str) -> float:
+    if not t_str:
+        return 0.0
+    try:
+        if isinstance(t_str, (int, float)):
+            return float(t_str)
+        ts = str(t_str).replace("Z", "+00:00")
+        dt = datetime.fromisoformat(ts)
+        return dt.timestamp()
+    except Exception:
+        return 0.0
+
 @app.get("/health")
 def health():
     return {"ok": True, "time": datetime.utcnow().isoformat()}
@@ -254,7 +266,7 @@ async def otp_send(body: OtpSendRequest):
     # OTP cooldown (db.save_otp created_at qo'shgan)
     existing = db.get_otp(phone)
     if existing:
-        sent_ago = time.time() - float(existing.get("created_at", 0) or 0)
+        sent_ago = time.time() - _parse_db_time(existing.get("created_at"))
         if sent_ago < 60:
             raise HTTPException(
                 status_code=429,
@@ -288,7 +300,7 @@ def otp_verify(body: OtpVerifyRequest):
         raise HTTPException(400, detail={"error": "not_found", "message": "Kod topilmadi. Qayta yuboring."})
 
     # expired
-    if time.time() > float(record.get("expires_at", 0) or 0):
+    if time.time() > _parse_db_time(record.get("expires_at")):
         db.delete_otp(phone)
         raise HTTPException(400, detail={"error": "expired", "message": "Kod muddati o'tdi. Qayta yuboring."})
 
