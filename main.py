@@ -137,7 +137,8 @@ class OrderItem(BaseModel):
 class OrderCreate(BaseModel):
     id: str | None = None  # e'tiborsiz qoldiriladi, db counter ishlaydi
     items: list[OrderItem]
-    address: str
+    lat: float
+    lng: float
     total: int
     date: str | None = None
     tg_user_id: int | None = None
@@ -404,7 +405,7 @@ async def place_order(body: OrderCreate):
     order_dict = {
         "id": order_id,
         "created_at": body.date or datetime.utcnow().isoformat(),
-        "address": body.address,
+        "address": f"{body.lat},{body.lng}",
         "items": [i.model_dump() for i in body.items],
         "total": int(body.total),
         "status": "pending",

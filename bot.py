@@ -160,8 +160,14 @@ def build_order_message(order: dict, title: str = "Yangi zakaz") -> str:
     text = (
         f"🛒 <b>{title} #{order_id}</b>\n"
         f"━━━━━━━━━━━━━━━\n"
-        f"📍 <b>Manzil:</b> {address}\n\n"
-        f"🍽 <b>Tarkib:</b>\n{items_text}\n\n"
+        f"📍 <b>Lokatsiya:</b> Xarita orqali yuborildi\n"
+    )
+    
+    if comment:
+        text += f"📝 <b>Izoh:</b> {comment}\n"
+
+    text += (
+        f"\n🍽 <b>Tarkib:</b>\n{items_text}\n\n"
         f"{coins_text}"
         f"💳 <b>Jami (to'lanishi kerak):</b> <b><u>{total:,} UZS</u></b>\n"
         f"💰 <b>To'lov:</b> {payment}\n"
@@ -171,8 +177,6 @@ def build_order_message(order: dict, title: str = "Yangi zakaz") -> str:
 
     if extra_phone:
         text += f"📱 <b>Qo'sh. tel:</b> {extra_phone}\n"
-    if comment:
-        text += f"💬 <b>Izoh:</b> {comment}\n"
 
     text += (
         f"⏰ <b>Vaqt:</b> {created_view}\n\n"
@@ -190,11 +194,13 @@ def admin_keyboard(order: dict) -> InlineKeyboardMarkup:
 
     address = order.get("address", "")
     phone   = order.get("phone", "")
+    
+    maps_url = f"https://maps.google.com/?q={address.strip()}" if "," in address else _maps_url(address)
 
     rows = [
         [
             InlineKeyboardButton("📞 Call", url=_tel_url(phone)),
-            InlineKeyboardButton("📍 Maps", url=_maps_url(address)),
+            InlineKeyboardButton("📍 Maps", url=maps_url),
         ]
     ]
 
@@ -223,11 +229,13 @@ def courier_keyboard(order: dict) -> InlineKeyboardMarkup:
 
     address = order.get("address", "")
     phone   = order.get("phone", "")
+    
+    maps_url = f"https://maps.google.com/?q={address.strip()}" if "," in address else _maps_url(address)
 
     rows = [
         [
             InlineKeyboardButton("📞 Call", url=_tel_url(phone)),
-            InlineKeyboardButton("📍 Maps", url=_maps_url(address)),
+            InlineKeyboardButton("📍 Maps", url=maps_url),
         ]
     ]
 
