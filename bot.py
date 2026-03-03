@@ -160,8 +160,13 @@ def build_order_message(order: dict, title: str = "Yangi zakaz") -> str:
     text = (
         f"🛒 <b>{title} #{order_id}</b>\n"
         f"━━━━━━━━━━━━━━━\n"
-        f"📍 <b>Lokatsiya:</b> Xarita orqali yuborildi\n"
     )
+
+    address = order.get("address", "").strip()
+    if address:
+        text += f"📍 <b>Manzil:</b> {address}\n"
+    else:
+        text += f"📍 <b>Manzil:</b> Kiritilmagan\n"
     
     if comment:
         text += f"📝 <b>Izoh:</b> {comment}\n"
@@ -198,8 +203,13 @@ def admin_keyboard(order: dict) -> InlineKeyboardMarkup:
 
     address = order.get("address", "")
     phone   = order.get("phone", "")
+    lat     = order.get("lat")
+    lng     = order.get("lng")
     
-    maps_url = f"https://maps.google.com/?q={address.strip()}" if "," in address else _maps_url(address)
+    if lat is not None and lng is not None:
+        maps_url = f"https://maps.google.com/?q={lat},{lng}"
+    else:
+        maps_url = f"https://maps.google.com/?q={address.strip()}" if "," in address else _maps_url(address)
 
     rows = [
         [
@@ -239,8 +249,13 @@ def courier_keyboard(order: dict) -> InlineKeyboardMarkup:
 
     address = order.get("address", "")
     phone   = order.get("phone", "")
+    lat     = order.get("lat")
+    lng     = order.get("lng")
     
-    maps_url = f"https://maps.google.com/?q={address.strip()}" if "," in address else _maps_url(address)
+    if lat is not None and lng is not None:
+        maps_url = f"https://maps.google.com/?q={lat},{lng}"
+    else:
+        maps_url = f"https://maps.google.com/?q={address.strip()}" if "," in address else _maps_url(address)
 
     rows = [
         [
