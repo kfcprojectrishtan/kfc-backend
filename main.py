@@ -235,6 +235,12 @@ async def otp_send(body: OtpSendRequest):
     if not phone:
         raise HTTPException(400, "phone required")
 
+    if db.is_banned(phone):
+        raise HTTPException(
+            status_code=403,
+            detail={"error": "banned", "message": "Siz administrator tomonidan bloklangansiz."}
+        )
+
     mode = (body.mode or "login").strip().lower()
     if mode not in ("login", "signup"):
         raise HTTPException(400, detail={"error": "bad_mode", "message": "mode faqat login/signup bo'lishi kerak"})
@@ -299,6 +305,12 @@ def otp_verify(body: OtpVerifyRequest):
     if not phone:
         print(f"OTP_VERIFY_ERROR: phone required. Payload: {body}")
         raise HTTPException(400, "phone required")
+
+    if db.is_banned(phone):
+        raise HTTPException(
+            status_code=403,
+            detail={"error": "banned", "message": "Siz administrator tomonidan bloklangansiz."}
+        )
 
     record = db.get_otp(phone)
     if not record:
@@ -401,6 +413,11 @@ async def place_order(body: OrderCreate):
     order_id = db.order_id_from_number(num)
 
     phone = _norm_phone(body.phone)
+    if phone and db.is_banned(phone):
+        raise HTTPException(
+            status_code=403,
+            detail={"error": "banned", "message": "Siz administrator tomonidan bloklangansiz."}
+        )
 
     order_dict = {
         "id": order_id,
@@ -486,6 +503,13 @@ def get_user_coins(phone: str):
     p = _norm_phone(phone)
     if not p:
         raise HTTPException(400, "phone required")
+        
+    if db.is_banned(p):
+        raise HTTPException(
+            status_code=403,
+            detail={"error": "banned", "message": "Siz administrator tomonidan bloklangansiz."}
+        )
+
     balance = get_coins(p)
     return {"phone": p, "balance": balance, "sum_value": balance * 1000}
 

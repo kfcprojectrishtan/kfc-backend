@@ -207,6 +207,35 @@ def save_registered_user(phone: str, first_name: str, last_name: str):
     supabase.table('registered_users').upsert(data).execute()
 
 # ═══════════════════════════════════════════════
+#  BANNED USERS
+# ═══════════════════════════════════════════════
+
+def is_banned(phone: str) -> bool:
+    res = supabase.table('banned_users').select('id').eq('phone', phone).eq('is_active', True).execute()
+    return len(res.data) > 0 if res.data else False
+
+def ban_user(phone: str, reason: str = None, admin_id: int = None):
+    data = {
+        'phone': phone,
+        'reason': reason,
+        'banned_by': admin_id,
+        'is_active': True,
+        'banned_at': datetime.utcnow().isoformat()
+    }
+    # For upsert, supabase python needs a list of dicts or dict. The schema constraint is phone = UNIQUE.
+    # To upsert carefully, we check if it exists or use upsert.
+    # supabase-py v2 upsert on primary keys, but phone is UNIQUE not PK.
+    # So we'll try to find it first.
+    existing = supabase.table('banned_users').select('id').eq('phone', phone).execute()
+    if existing.data:
+        supabase.table('banned_users').update(data).eq('phone', phone).execute()
+    else:
+        supabase.table('banned_users').insert(data).execute()
+
+def unban_user(phone: str):
+    supabase.table('banned_users').update({'is_active': False}).eq('phone', phone).execute()
+
+# ═══════════════════════════════════════════════
 #  COINS
 # ═══════════════════════════════════════════════
 

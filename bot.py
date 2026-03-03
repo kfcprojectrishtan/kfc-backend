@@ -182,6 +182,10 @@ def build_order_message(order: dict, title: str = "Yangi zakaz") -> str:
         f"⏰ <b>Vaqt:</b> {created_view}\n\n"
         f"{emoji} <b>Status:</b> {label}"
     )
+
+    if phone and db.is_banned(phone):
+        text += "\n\n🚫 <b>USER BANNED</b>"
+
     return text
   
 # ═══════════════════════════════════════════════════════════════
@@ -219,6 +223,12 @@ def admin_keyboard(order: dict) -> InlineKeyboardMarkup:
             InlineKeyboardButton("📦 Ovqat tayyor", callback_data=f"status:{order_id}:ready"),
         ])
     # ready/delivering/done/cancelled — admin tugma kerak emas
+
+    if phone:
+        if db.is_banned(phone):
+            rows.append([InlineKeyboardButton("✅ Unban User", callback_data=f"unban:{phone}:{order_id}")])
+        else:
+            rows.append([InlineKeyboardButton("🚫 Ban User", callback_data=f"ban:{phone}:{order_id}")])
 
     return InlineKeyboardMarkup(rows)
 
@@ -776,6 +786,44 @@ async def handle_statistics_btn(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(chunk, parse_mode="HTML")
 
 
+# Admin Ban / Unban callback
+# ═══════════════════════════════════════════════════════════════
+
+async def handle_ban_unban_callback(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    data = query.data or ""
+
+    if not _is_admin(update.effective_chat.id):
+        await query.answer("❌ Ruxsat yo'q", show_alert=True)
+        return
+
+    admin_id = update.effective_chat.id
+
+    if data.startswith("ban:"):
+        _, phone, order_id = data.split(":", 2)
+        db.ban_user(phone, admin_id=admin_id)
+        action_text = "🚫 Foydalanuvchi bloklandi"
+        
+    elif data.startswith("unban:"):
+        _, phone, order_id = data.split(":", 2)
+        db.unban_user(phone)
+        action_text = "✅ Blokdan chiqarildi"
+    else:
+        return
+
+    await query.answer(action_text)
+
+    order = db.get_by_id(order_id)
+    if order:
+        try:
+            await query.edit_message_text(
+                text=build_order_message(order, title="Yangi zakaz"),
+                parse_mode="HTML",
+                reply_markup=admin_keyboard(order),
+            )
+        except Exception as e:
+            print(f"message update error: {e}")
+
 # ═══════════════════════════════════════════════════════════════
 # App yaratish
 # ═══════════════════════════════════════════════════════════════
@@ -807,6 +855,7 @@ def create_app() -> Application:
     app.add_handler(CallbackQueryHandler(review_callback, pattern=r"^review:"))
     app.add_handler(CallbackQueryHandler(courier_callback, pattern=r"^courier:"))
     app.add_handler(CallbackQueryHandler(handle_admin_status_callback, pattern=r"^status:"))
+    app.add_handler(CallbackQueryHandler(handle_ban_unban_callback, pattern=r"^(ban|unban):"))
 
     _app_instance = app
     return app
