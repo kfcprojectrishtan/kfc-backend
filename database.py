@@ -396,4 +396,5 @@ def menu_update_food(food_id: int, patch: dict):
     return res.data[0] if res.data else {}
 
 def menu_delete_food(food_id: int):
-    supabase.table('menu_foods').delete().eq('id', food_id).execute()
+    res = supabase.table('menu_foods').delete().eq('id', food_id).execute()
+    return len(res.data) > 0 if res.data else False
