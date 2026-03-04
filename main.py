@@ -640,7 +640,7 @@ async def create_food(
 
     food = db.menu_create_food({
         "name": name.strip(),
-        "fullName": (fullName or "").strip() or None,
+        "full_name": (fullName or "").strip() or None,
         "description": (description or "").strip(),
         "price": price,
         "category": category.strip(),
@@ -668,7 +668,7 @@ async def update_food(
     if name is not None:
         patch["name"] = name.strip()
     if fullName is not None:
-        patch["fullName"] = fullName.strip() or None
+        patch["full_name"] = fullName.strip() or None
     if description is not None:
         patch["description"] = description.strip()
     if price is not None:
