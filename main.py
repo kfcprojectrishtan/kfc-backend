@@ -79,7 +79,8 @@ app.add_middleware(
         "http://127.0.0.1:5500",
         "http://localhost:3000",
         "https://m5chicken-admin-panel.vercel.app",
-        "https://kfcprojectrishtan.github.io"
+        "https://kfcprojectrishtan.github.io",
+        "https://m5chicken.uz"
     ],
     allow_credentials=True,
     allow_methods=["*"],
