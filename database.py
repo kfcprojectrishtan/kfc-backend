@@ -335,7 +335,8 @@ def menu_get_foods(category: str = None, search: str = None, active_only: bool =
     
     final_foods = []
     for food in foods:
-        cat_slug = food.get('menu_categories', {}).get('slug', '')
+        cat_data = food.get('menu_categories') or {}
+        cat_slug = cat_data.get('slug', '')
         # Only return items matching category if filter applied
         if category and cat_slug != category:
             continue
