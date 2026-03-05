@@ -620,9 +620,9 @@ def delete_category(
     try:
         deleted = db.menu_delete_category(cat_id)
     except ValueError as e:
-        if "CATEGORY_HAS_FOODS" in str(e):
-            raise HTTPException(409, "Category has foods — delete them first")
-        raise
+        if "Bu kategoriyada ovqatlar bor" in str(e):
+            raise HTTPException(409, str(e))
+        raise HTTPException(400, str(e))
     if not deleted:
         raise HTTPException(404, "Category not found")
     return {"success": True}
