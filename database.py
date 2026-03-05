@@ -333,7 +333,8 @@ def menu_delete_category(cat_id: int):
     if res.data:
         raise ValueError("Bu kategoriyada ovqatlar bor! Oldin ularni o'chiring.")
         
-    supabase.table('menu_categories').delete().eq('id', cat_id).execute()
+    res = supabase.table('menu_categories').delete().eq('id', cat_id).execute()
+    return len(res.data) > 0 if res.data else False
 
 # ═══════════════════════════════════════════════
 #  MENU FOODS
