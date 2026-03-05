@@ -301,12 +301,29 @@ def menu_create_category(cat: dict):
     if 'id' in cat:
         del cat['id']
         
+    if cat.get('sort_order') is None:
+        try:
+            res_sort = supabase.table('menu_categories').select('sort_order').order('sort_order', desc=True).limit(1).execute()
+            if res_sort.data and res_sort.data[0].get('sort_order') is not None:
+                cat['sort_order'] = res_sort.data[0]['sort_order'] + 1
+            else:
+                cat['sort_order'] = 1
+        except Exception:
+            cat['sort_order'] = 1
+            
     res = supabase.table('menu_categories').insert(cat).execute()
     return res.data[0] if res.data else {}
 
 def menu_update_category(cat_id: int, patch: dict):
     if 'key' in patch:
         patch['slug'] = patch.pop('key')
+        
+    if 'sort_order' in patch and patch['sort_order'] is None:
+        del patch['sort_order']
+
+    if not patch:
+        return {}
+        
     res = supabase.table('menu_categories').update(patch).eq('id', cat_id).execute()
     return res.data[0] if res.data else {}
 

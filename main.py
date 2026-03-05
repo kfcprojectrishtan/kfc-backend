@@ -549,7 +549,7 @@ import uuid as _uuid
 async def create_category(
     key: str = Form(...),
     title: str = Form(...),
-    sort_order: int = Form(0),
+    sort_order: int | None = Form(None),
     is_active: str = Form("true"),
     image: UploadFile | None = File(None),
     x_admin_key: str | None = Header(default=None),
