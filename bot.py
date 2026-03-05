@@ -796,7 +796,8 @@ async def handle_statistics_btn(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text(chunk, parse_mode="HTML")
             chunk = line
         else:
-            chunk += ("\n" if chunk else "") + line
+            chunk += ("\n" + line) if chunk else line
+            
     if chunk:
         await update.message.reply_text(chunk, parse_mode="HTML")
 

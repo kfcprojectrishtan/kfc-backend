@@ -70,23 +70,59 @@ def stats_today() -> dict:
         "orders_count": total_orders
     }
 
-def stats_monthly() -> list:
-    res = supabase.table('orders').select('total,status,created_at').execute()
+def stats_monthly() -> dict:
+    # bot.py expects a dictionary with: month_label, total, done, cancelled, revenue, users=[]
+    now = datetime.now()
+    month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    month_start_str = month_start.isoformat()
+    
+    # Calculate next month using a simple timedelta logic
+    if now.month == 12:
+        next_month_start = now.replace(year=now.year + 1, month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+    else:
+        next_month_start = now.replace(month=now.month + 1, day=1, hour=0, minute=0, second=0, microsecond=0)
+    
+    next_month_start_str = next_month_start.isoformat()
+    
+    res = supabase.table('orders').select('*').gte('created_at', month_start_str).lt('created_at', next_month_start_str).execute()
     orders = res.data
     
-    daily: dict[str, dict] = {}
+    total = len(orders)
+    done = sum(1 for o in orders if o.get('status') == 'done')
+    cancelled = sum(1 for o in orders if o.get('status') == 'cancelled')
+    revenue = sum(o.get('total', 0) for o in orders if o.get('status') == 'done')
+    
+    # User stats
+    users_map = {}
     for o in orders:
-        if not o.get('created_at'): continue
-        dstr = o['created_at'][:10]
-        if dstr not in daily:
-            daily[dstr] = {"date": dstr, "revenue": 0, "orders_count": 0}
-        
-        daily[dstr]["orders_count"] += 1
-        if o.get("status") == "delivered":
-            daily[dstr]["revenue"] += o.get("total", 0)
+        phone = o.get('phone', 'Noma\'lum')
+        if phone not in users_map:
+            users_map[phone] = {
+                "phone": phone,
+                "name": o.get('customer_name', 'Noma\'lum'),
+                "total": 0,
+                "done": 0,
+                "cancelled": 0,
+                "revenue": 0
+            }
+        users_map[phone]["total"] += 1
+        st = o.get('status')
+        if st == 'done':
+            users_map[phone]["done"] += 1
+            users_map[phone]["revenue"] += o.get('total', 0)
+        elif st == 'cancelled':
+            users_map[phone]["cancelled"] += 1
             
-    dates = sorted(daily.keys())
-    return [daily[d] for d in dates]
+    users_list = sorted(users_map.values(), key=lambda x: x['total'], reverse=True)
+    
+    return {
+        "month_label": now.strftime('%B %Y'),
+        "total": total,
+        "done": done,
+        "cancelled": cancelled,
+        "revenue": revenue,
+        "users": users_list
+    }
 
 # ═══════════════════════════════════════════════
 #  ORDER COUNTER
