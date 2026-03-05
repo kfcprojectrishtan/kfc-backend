@@ -311,8 +311,13 @@ def menu_create_category(cat: dict):
         except Exception:
             cat['sort_order'] = 1
             
-    res = supabase.table('menu_categories').insert(cat).execute()
-    return res.data[0] if res.data else {}
+    try:
+        res = supabase.table('menu_categories').insert(cat).execute()
+        return res.data[0] if res.data else {}
+    except Exception as e:
+        if "duplicate key value" in str(e).lower() or "unique constraint" in str(e).lower() or "23505" in str(e):
+            raise ValueError("Bunday ID (key) ga ega kategoriya allaqachon mavjud.")
+        raise
 
 def menu_update_category(cat_id: int, patch: dict):
     if 'key' in patch:
@@ -324,8 +329,13 @@ def menu_update_category(cat_id: int, patch: dict):
     if not patch:
         return {}
         
-    res = supabase.table('menu_categories').update(patch).eq('id', cat_id).execute()
-    return res.data[0] if res.data else {}
+    try: 
+        res = supabase.table('menu_categories').update(patch).eq('id', cat_id).execute()
+        return res.data[0] if res.data else {}
+    except Exception as e:
+        if "duplicate key value" in str(e).lower() or "unique constraint" in str(e).lower() or "23505" in str(e):
+            raise ValueError("Bunday ID (key) ga ega kategoriya allaqachon mavjud.")
+        raise
 
 def menu_delete_category(cat_id: int):
     # First check if foods depend on this category

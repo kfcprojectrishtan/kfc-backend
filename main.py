@@ -563,13 +563,16 @@ async def create_category(
         mime = image.content_type or "application/octet-stream"
         db.supabase.storage.from_("menu-images").upload(f"categories/{fname}", await image.read(), file_options={"content-type": mime})
         image_url = db.supabase.storage.from_("menu-images").get_public_url(f"categories/{fname}")
-    cat = db.menu_create_category({
-        "key": key.strip(),
-        "title": title.strip(),
-        "sort_order": sort_order,
-        "is_active": active,
-        "image_url": image_url,
-    })
+    try:
+        cat = db.menu_create_category({
+            "key": key.strip(),
+            "title": title.strip(),
+            "sort_order": sort_order,
+            "is_active": active,
+            "image_url": image_url,
+        })
+    except ValueError as e:
+        raise HTTPException(400, str(e))
     return cat
 
 
@@ -599,10 +602,13 @@ async def update_category(
         mime = image.content_type or "application/octet-stream"
         db.supabase.storage.from_("menu-images").upload(f"categories/{fname}", await image.read(), file_options={"content-type": mime})
         patch["image_url"] = db.supabase.storage.from_("menu-images").get_public_url(f"categories/{fname}")
-    result = db.menu_update_category(cat_id, patch)
-    if not result:
-        raise HTTPException(404, "Category not found")
-    return result
+    try:
+        result = db.menu_update_category(cat_id, patch)
+        if not result:
+            raise HTTPException(404, "Category not found")
+        return result
+    except ValueError as e:
+        raise HTTPException(400, str(e))
 
 
 @app.delete("/api/menu/categories/{cat_id}")
