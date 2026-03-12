@@ -48,9 +48,9 @@ async def lifespan(app: FastAPI):
             await _bot_app.updater.start_polling(drop_pending_updates=True)
 
         _bot_polling_task = asyncio.create_task(_poll())
-        print("🤖 Admin bot ishga tushdi")
+        print("[OK] Admin bot ishga tushdi")
     else:
-        print("⚠️ BOT_TOKEN yo'q — bot ishlamaydi")
+        print("[WARN] BOT_TOKEN yo'q — bot ishlamaydi")
 
     yield
 
@@ -724,6 +724,6 @@ def delete_food(
 if __name__ == "__main__":
     import uvicorn
     port = int(os.getenv("PORT", 8000))
-    print(f"\n🚀 Server: http://localhost:{port}")
-    print(f"📋 API docs: http://localhost:{port}/docs\n")
+    print(f"\n[START] Server: http://localhost:{port}")
+    print(f"[DOCS] API docs: http://localhost:{port}/docs\n")
     uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)
