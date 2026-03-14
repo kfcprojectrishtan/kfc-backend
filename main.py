@@ -635,6 +635,7 @@ async def create_food(
     category: str = Form(...),
     fullName: str = Form(None),
     description: str = Form(""),
+    old_price: int | None = Form(None),
     is_active: bool = Form(True),
     image: UploadFile | None = File(None),
     image_emoji: str = Form(None),
@@ -656,6 +657,7 @@ async def create_food(
         "full_name": (fullName or "").strip() or None,
         "description": (description or "").strip(),
         "price": price,
+        "old_price": old_price if old_price and old_price > 0 else None,
         "category": category.strip(),
         "image": image_value,
         "is_active": is_active,
@@ -671,6 +673,7 @@ async def update_food(
     category: str = Form(None),
     fullName: str = Form(None),
     description: str = Form(None),
+    old_price: int | None = Form(None),
     is_active: bool = Form(None),
     image: UploadFile | None = File(None),
     image_emoji: str = Form(None),
@@ -690,6 +693,9 @@ async def update_food(
         patch["category"] = category.strip()
     if is_active is not None:
         patch["is_active"] = is_active
+    # old_price: 0 or empty means remove discount
+    if old_price is not None:
+        patch["old_price"] = old_price if old_price > 0 else None
 
     if image and image.filename:
         ext = Path(image.filename).suffix or ".jpg"
