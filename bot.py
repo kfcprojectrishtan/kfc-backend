@@ -349,7 +349,7 @@ async def send_otp(chat_id: int, code: str):
     await app.bot.send_message(
         chat_id=chat_id,
         text=(
-            f"🔐 <b>KFC Riston — Tasdiqlash kodi</b>\n\n"
+            f"🔐 <b>M5Chicken Riston — Tasdiqlash kodi</b>\n\n"
             f"Sizning kodingiz: <code>{code}</code>\n\n"
             f"⏱ Kod 5 daqiqa ichida amal qiladi.\n"
             f"Kodni hech kimga bermang!"
@@ -403,7 +403,7 @@ async def cmd_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         one_time_keyboard=True,
     )
     await update.message.reply_text(
-        "👋 <b>KFC Riston</b> ga xush kelibsiz! 🍗\n\n"
+        "👋 <b>M5Chickenga</b> ga xush kelibsiz! \n\n"
         "Ro'yxatdan o'tish uchun telefon raqamingizni yuboring.\n\n"
         "⬇️ Pastdagi tugmani bosing:",
         parse_mode="HTML",
