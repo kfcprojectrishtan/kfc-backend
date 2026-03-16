@@ -384,7 +384,7 @@ async def cmd_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     # User: ro'yxatdan o'tganmi?
     existing = db.get_telegram_user_by_chat_id(str(chat_id))
     if existing:
-        website = os.getenv("WEBSITE_URL", "https://kfs-menu.vercel.app/")
+        website = os.getenv("WEBSITE_URL", "https://m5chicken.uz")
         first = (existing.get("full_name") or "").split()[0] or "do'st"
         await update.message.reply_text(
             f"👋 <b>Salom, {first}!</b>\n\n"
@@ -431,7 +431,7 @@ async def handle_contact(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         phone = "998" + phone[-9:]
     phone = "+" + phone
 
-    website = os.getenv("WEBSITE_URL", "https://kfs-menu.vercel.app/")
+    website = os.getenv("WEBSITE_URL", "https://m5chicken.uz")
 
     rm = await update.message.reply_text("⏳", reply_markup=ReplyKeyboardRemove())
     try:
