@@ -68,7 +68,8 @@ def _is_admin(chat_id: int) -> bool:
 
 
 def _is_courier(chat_id: int) -> bool:
-    return str(chat_id) == str(os.getenv("COURIER_CHAT_ID", ""))
+    courier_ids = [x.strip() for x in os.getenv("COURIER_CHAT_ID", "").split(",") if x.strip()]
+    return str(chat_id) in courier_ids
 
 
 def _can_move(old: str, new: str) -> bool:
@@ -527,17 +528,18 @@ async def handle_admin_status_callback(update: Update, ctx: ContextTypes.DEFAULT
 
     if new_status == "ready":
         # courierga yuborish
-        courier_id = os.getenv("COURIER_CHAT_ID", "")
-        if courier_id:
-            try:
-                await ctx.bot.send_message(
-                    chat_id=int(courier_id),
-                    text=build_order_message({**updated, "status": "ready"}, title="Yetkazish"),
-                    parse_mode="HTML",
-                    reply_markup=courier_keyboard({**updated, "status": "ready"}),
-                )
-            except Exception as e:
-                print(f"Courierga yuborishda xato: {e}")
+        courier_ids = [x.strip() for x in os.getenv("COURIER_CHAT_ID", "").split(",") if x.strip()]
+        if courier_ids:
+            for courier_id in courier_ids:
+                try:
+                    await ctx.bot.send_message(
+                        chat_id=int(courier_id),
+                        text=build_order_message({**updated, "status": "ready"}, title="Yetkazish"),
+                        parse_mode="HTML",
+                        reply_markup=courier_keyboard({**updated, "status": "ready"}),
+                    )
+                except Exception as e:
+                    print(f"Courierga yuborishda xato ({courier_id}): {e}")
 
         # userga ham notify
         if phone:
