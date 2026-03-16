@@ -63,7 +63,8 @@ PAYMENT_MAP = {"naqt": "💵 Naqt", "card": "💳 Karta"}
 
 
 def _is_admin(chat_id: int) -> bool:
-    return str(chat_id) == str(os.getenv("ADMIN_CHAT_ID", ""))
+    admin_ids = [x.strip() for x in os.getenv("ADMIN_CHAT_ID", "").split(",") if x.strip()]
+    return str(chat_id) in admin_ids
 
 
 def _is_courier(chat_id: int) -> bool:
@@ -298,24 +299,25 @@ async def notify_new_order(order: dict):
     if not app:
         return
 
-    admin_id = os.getenv("ADMIN_CHAT_ID")
-    if not admin_id:
+    admin_ids = [x.strip() for x in os.getenv("ADMIN_CHAT_ID", "").split(",") if x.strip()]
+    if not admin_ids:
         print("⚠️ ADMIN_CHAT_ID o'rnatilmagan!")
         return
 
-    try:
-        msg = await app.bot.send_message(
-            chat_id=int(admin_id),
-            text=build_order_message(order, title="Yangi zakaz"),
-            parse_mode="HTML",
-            reply_markup=admin_keyboard(order),
-        )
+    for admin_id in admin_ids:
         try:
-            db.update_tg_msg_id(order["id"], msg.message_id)
-        except Exception:
-            pass
-    except Exception as e:
-        print(f"notify_new_order xato: {e}")
+            msg = await app.bot.send_message(
+                chat_id=int(admin_id),
+                text=build_order_message(order, title="Yangi zakaz"),
+                parse_mode="HTML",
+                reply_markup=admin_keyboard(order),
+            )
+            try:
+                db.update_tg_msg_id(order["id"], msg.message_id)
+            except Exception:
+                pass
+        except Exception as e:
+            print(f"notify_new_order xato: {e}")
 
 
 async def notify_cancelled(order: dict):
@@ -323,22 +325,23 @@ async def notify_cancelled(order: dict):
     if not app:
         return
 
-    admin_id = os.getenv("ADMIN_CHAT_ID")
-    if not admin_id:
+    admin_ids = [x.strip() for x in os.getenv("ADMIN_CHAT_ID", "").split(",") if x.strip()]
+    if not admin_ids:
         return
 
-    try:
-        await app.bot.send_message(
-            chat_id=int(admin_id),
-            text=(
-                f"❌ <b>Zakaz bekor qilindi #{order.get('id','—')}</b>\n"
-                f"💳 {int(order.get('total',0) or 0):,} UZS\n"
-                f"👤 {order.get('customer_name','')} {order.get('phone','')}"
-            ),
-            parse_mode="HTML",
-        )
-    except Exception as e:
-        print(f"notify_cancelled xato: {e}")
+    for admin_id in admin_ids:
+        try:
+            await app.bot.send_message(
+                chat_id=int(admin_id),
+                text=(
+                    f"❌ <b>Zakaz bekor qilindi #{order.get('id','—')}</b>\n"
+                    f"💳 {int(order.get('total',0) or 0):,} UZS\n"
+                    f"👤 {order.get('customer_name','')} {order.get('phone','')}"
+                ),
+                parse_mode="HTML",
+            )
+        except Exception as e:
+            print(f"notify_cancelled xato: {e}")
 
 
 async def send_otp(chat_id: int, code: str):
@@ -598,8 +601,8 @@ async def courier_callback(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
             )
 
         # admin signal (ixtiyoriy)
-        admin_id = os.getenv("ADMIN_CHAT_ID", "")
-        if admin_id:
+        admin_ids = [x.strip() for x in os.getenv("ADMIN_CHAT_ID", "").split(",") if x.strip()]
+        for admin_id in admin_ids:
             try:
                 await ctx.bot.send_message(
                     chat_id=int(admin_id),
@@ -627,8 +630,8 @@ async def courier_callback(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
             pass
 
         # admin signal (ixtiyoriy)
-        admin_id = os.getenv("ADMIN_CHAT_ID", "")
-        if admin_id:
+        admin_ids = [x.strip() for x in os.getenv("ADMIN_CHAT_ID", "").split(",") if x.strip()]
+        for admin_id in admin_ids:
             try:
                 await ctx.bot.send_message(
                     chat_id=int(admin_id),
@@ -696,21 +699,22 @@ async def handle_review_text(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     review_text = (update.message.text or "").strip()
     user = update.effective_user
 
-    admin_id = os.getenv("ADMIN_CHAT_ID", "")
-    if admin_id and review_text:
-        try:
-            await ctx.bot.send_message(
-                chat_id=int(admin_id),
-                text=(
-                    f"💬 <b>Yangi izoh!</b>\n\n"
-                    f"📦 Buyurtma: #{order_id}\n"
-                    f"👤 {user.full_name} (@{user.username or '—'})\n\n"
-                    f"\"{review_text}\""
-                ),
-                parse_mode="HTML",
-            )
-        except Exception:
-            pass
+    admin_ids = [x.strip() for x in os.getenv("ADMIN_CHAT_ID", "").split(",") if x.strip()]
+    if admin_ids and review_text:
+        for admin_id in admin_ids:
+            try:
+                await ctx.bot.send_message(
+                    chat_id=int(admin_id),
+                    text=(
+                        f"💬 <b>Yangi izoh!</b>\n\n"
+                        f"📦 Buyurtma: #{order_id}\n"
+                        f"👤 {user.full_name} (@{user.username or '—'})\n\n"
+                        f"\"{review_text}\""
+                    ),
+                    parse_mode="HTML",
+                )
+            except Exception:
+                pass
 
     await update.message.reply_text(
         "🙏 Izohingiz uchun rahmat! 🍗",
