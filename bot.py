@@ -63,12 +63,12 @@ PAYMENT_MAP = {"naqt": "💵 Naqt", "card": "💳 Karta"}
 
 
 def _is_admin(chat_id: int) -> bool:
-    admin_ids = [x.strip() for x in os.getenv("ADMIN_CHAT_ID", "").split(",") if x.strip()]
+    admin_ids = [x.strip() for x in os.getenv("ADMIN_CHAT_ID", "").replace("|", ",").split(",") if x.strip()]
     return str(chat_id) in admin_ids
 
 
 def _is_courier(chat_id: int) -> bool:
-    courier_ids = [x.strip() for x in os.getenv("COURIER_CHAT_ID", "").split(",") if x.strip()]
+    courier_ids = [x.strip() for x in os.getenv("COURIER_CHAT_ID", "").replace("|", ",").split(",") if x.strip()]
     return str(chat_id) in courier_ids
 
 
@@ -300,7 +300,7 @@ async def notify_new_order(order: dict):
     if not app:
         return
 
-    admin_ids = [x.strip() for x in os.getenv("ADMIN_CHAT_ID", "").split(",") if x.strip()]
+    admin_ids = [x.strip() for x in os.getenv("ADMIN_CHAT_ID", "").replace("|", ",").split(",") if x.strip()]
     if not admin_ids:
         print("⚠️ ADMIN_CHAT_ID o'rnatilmagan!")
         return
@@ -326,7 +326,7 @@ async def notify_cancelled(order: dict):
     if not app:
         return
 
-    admin_ids = [x.strip() for x in os.getenv("ADMIN_CHAT_ID", "").split(",") if x.strip()]
+    admin_ids = [x.strip() for x in os.getenv("ADMIN_CHAT_ID", "").replace("|", ",").split(",") if x.strip()]
     if not admin_ids:
         return
 
@@ -528,7 +528,7 @@ async def handle_admin_status_callback(update: Update, ctx: ContextTypes.DEFAULT
 
     if new_status == "ready":
         # courierga yuborish
-        courier_ids = [x.strip() for x in os.getenv("COURIER_CHAT_ID", "").split(",") if x.strip()]
+        courier_ids = [x.strip() for x in os.getenv("COURIER_CHAT_ID", "").replace("|", ",").split(",") if x.strip()]
         if courier_ids:
             for courier_id in courier_ids:
                 try:
@@ -603,7 +603,7 @@ async def courier_callback(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
             )
 
         # admin signal (ixtiyoriy)
-        admin_ids = [x.strip() for x in os.getenv("ADMIN_CHAT_ID", "").split(",") if x.strip()]
+        admin_ids = [x.strip() for x in os.getenv("ADMIN_CHAT_ID", "").replace("|", ",").split(",") if x.strip()]
         for admin_id in admin_ids:
             try:
                 await ctx.bot.send_message(
@@ -632,7 +632,7 @@ async def courier_callback(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
             pass
 
         # admin signal (ixtiyoriy)
-        admin_ids = [x.strip() for x in os.getenv("ADMIN_CHAT_ID", "").split(",") if x.strip()]
+        admin_ids = [x.strip() for x in os.getenv("ADMIN_CHAT_ID", "").replace("|", ",").split(",") if x.strip()]
         for admin_id in admin_ids:
             try:
                 await ctx.bot.send_message(
@@ -701,7 +701,7 @@ async def handle_review_text(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     review_text = (update.message.text or "").strip()
     user = update.effective_user
 
-    admin_ids = [x.strip() for x in os.getenv("ADMIN_CHAT_ID", "").split(",") if x.strip()]
+    admin_ids = [x.strip() for x in os.getenv("ADMIN_CHAT_ID", "").replace("|", ",").split(",") if x.strip()]
     if admin_ids and review_text:
         for admin_id in admin_ids:
             try:
